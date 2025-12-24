@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>DARKPLAY</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+body{
+  background:#050b18;
+  color:#fff;
+  font-family:Arial;
+  margin:0;
+}
+header{text-align:center;padding:25px}
+h1{color:#00f0ff}
+.container{max-width:1000px;margin:auto;padding:20px}
+.card{
+  background:#0b1633;
+  border-radius:18px;
+  padding:20px;
+  margin-top:20px;
+  box-shadow:0 0 25px #00f0ff33;
+}
+.produto{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+.produto img{
+  width:120px;
+  border-radius:12px;
+}
+button{
+  background:linear-gradient(90deg,#00f0ff,#0066ff);
+  border:none;
+  padding:14px;
+  border-radius:12px;
+  width:100%;
+  margin-top:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.remover{
+  background:linear-gradient(90deg,#ff3b3b,#8b0000);
+}
+.pix-code{
+  background:#020617;
+  padding:12px;
+  border-radius:10px;
+  word-break:break-all;
+  margin-top:10px;
+}
+.admin{border:1px solid #00f0ff44}
+input{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:none;
+  background:#020617;
+  color:#fff;
+}
+a.discord{
+  display:block;
+  text-align:center;
+  background:#5865F2;
+  padding:14px;
+  border-radius:12px;
+  margin-top:15px;
+  color:#fff;
+  text-decoration:none;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+if(!localStorage.getItem("logado")){
+  window.location.href="index.html";
+}
+</script>
+
+<header>
+  <h1>DARKPLAY</h1>
+  <button onclick="logout()">Sair</button>
+</header>
+
+<div class="container">
+
+<!-- 🔒 ADMIN -->
+<div id="admin" class="card admin" style="display:none">
+  <h2>🧑‍💼 Criar Produto</h2>
+  <input id="nome" placeholder="Nome do produto">
+  <input id="preco" placeholder="Preço (ex: 24.00)">
+  <input id="img" placeholder="URL da imagem">
+  <button onclick="criarProduto()">Adicionar produto</button>
+</div>
+
+<!-- 📦 PRODUTOS -->
+<div id="produtos"></div>
+
+<!-- 💸 PIX -->
+<div id="pixArea" class="card" style="display:none">
+  <h2>Pagamento PIX</h2>
+  <div id="qrcode"></div>
+  <div class="pix-code" id="pixcode">
+fa093dd0-4758-41be-b664-963eac8e1503
+  </div>
+
+  <button onclick="jaPaguei()">Já paguei</button>
+
+  <a class="discord" href="https://discord.gg/8PkDDs2M8q " target="_blank">
+    Entrar no Discord
+  </a>
+</div>
+
+</div>
+
+<script>
+const ADMIN_EMAIL = "adminDARKZIN@loja.com";
+const email = localStorage.getItem("email");
+const isAdmin = email === ADMIN_EMAIL;
+
+if(isAdmin){
+  document.getElementById("admin").style.display="block";
+}
+
+let produtos = JSON.parse(localStorage.getItem("produtos") || "[]");
+
+function salvar(){
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+}
+
+function render(){
+  const div = document.getElementById("produtos");
+  div.innerHTML="";
+  produtos.forEach((p,i)=>{
+    div.innerHTML+=`
+      <div class="card produto">
+        <img src="${p.img}">
+        <div style="flex:1">
+          <h2>${p.nome}</h2>
+          <p>R$ ${p.preco}</p>
+          <button onclick="abrirPix('${p.nome}')">Pagar com PIX</button>
+          ${isAdmin ? `<button class="remover" onclick="removerProduto(${i})">🗑 Remover produto</button>` : ``}
+        </div>
+      </div>
+    `;
+  });
+}
+
+function criarProduto(){
+  produtos.push({
+    nome:nome.value,
+    preco:preco.value,
+    img:img.value
+  });
+  salvar();
+  render();
+  nome.value=preco.value=img.value="";
+}
+
+function removerProduto(index){
+  if(!confirm("Tem certeza que deseja remover este produto?")) return;
+  produtos.splice(index,1);
+  salvar();
+  render();
+}
+
+function abrirPix(){
+  document.getElementById("pixArea").style.display="block";
+  document.getElementById("qrcode").innerHTML="";
+  new QRCode(document.getElementById("qrcode"),{
+    text:document.getElementById("pixcode").innerText,
+    width:220,
+    height:220
+  });
+  window.scrollTo(0,document.body.scrollHeight);
+}
+
+function jaPaguei(){
+  alert("Pagamento enviado! Aguarde confirmação no Discord.");
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href="index.html";
+}
+
+render();
+</script>
+
+</body>
+</html>
